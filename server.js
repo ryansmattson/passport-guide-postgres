@@ -3,7 +3,11 @@ var bodyParser = require('body-parser');
 var path = require('path');
 var passport = require('passport');
 var session = require('express-session');
-var LocalStrategy = require('passport-local').Strategy();
+var LocalStrategy = require('passport-local').Strategy;
+
+var User = require('./models/user');
+var login = require('./routes/login');
+var register = require('./routes/register');
 
 var app = express();
 
@@ -21,7 +25,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.use('local', new localStrategy({
+passport.use('local', new LocalStrategy({
         usernameField: 'username',
         passwordField: 'password'
     },
@@ -37,33 +41,34 @@ passport.use('local', new localStrategy({
             } else {
                 done(null, false);
             }
-        });
-    }));
+      });
+}));
 
 
 //converts user to user id
-passport.serializeUser(function(user, done){
-  done(null, user.id);
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
 });
 
 //converts user id to user
-passport.deserializeUser(function(id, done){
-  User.findById(id, function(err, user){
-    if(err){
-      return done(err);
-    }
-    done(null, user);
-  });
+passport.deserializeUser(function(id, done) {
+    User.findById(id, function(err, user) {
+        if (err) {
+            return done(err);
+        }
+        done(null, user);
+    });
 });
 
 app.use(bodyParser.json());
-app.use(bodyParser.urllencoded({
+app.use(bodyParser.urlencoded({
     extended: true
 }));
+
 app.use(express.static('public'));
 
-app.get('/', function(req, res){
-  response.sendFile(path.join(__dirname, 'public/views/login.html'));
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname, 'public/views/login.html'));
 })
 
 app.use('/login', login);

@@ -7,7 +7,7 @@ var config = {
     database: 'passport',
     port: 5432,
     max: 10,
-    ideTimeoutMillis: 30000
+    idleTimeoutMillis: 30000
 }
 
 var pool = new pg.Pool(config);
@@ -40,7 +40,9 @@ function create(username, password, callback) {
                 return callback(err);
             }
 
-            client.query('INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, username;' [username, hash],
+            client.query('INSERT INTO users (username, password) '
+      +'VALUES ($1, $2) RETURNING id, username;',
+      [username, hash],
                 function(err, result) {
                     if (err) {
                         done();
@@ -61,6 +63,10 @@ function findAndComparePassword(username, candidatePassword, callback) {
     findByUsername(username, function(err, user) {
         if (err) {
             return callback(err);
+        }
+
+        if(!user){
+          return callback(null);
         }
 
         bcrypt.compare(candidatePassword, user.password, function(err, isMatch) {
